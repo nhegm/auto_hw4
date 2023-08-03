@@ -25,7 +25,7 @@ class CardDeliveryTest {
         $("[data-test-id=notification]").shouldBe(visible, Duration.ofSeconds(12));
         $(".notification__title").shouldHave(exactText("Успешно!"));
     }
-/*
+
     @Test
     void shouldPassWhenNameWithYoTest() {
         open("http://localhost:9999");
@@ -38,7 +38,7 @@ class CardDeliveryTest {
         $("[data-test-id=notification]").shouldBe(visible, Duration.ofSeconds(12));
         $(".notification__title").shouldHave(exactText("Успешно!"));
     }
-*/
+
     @Test
     void shouldPassWhenNameWithHyphenTest() {
         open("http://localhost:9999");
