@@ -5,6 +5,9 @@ import com.codeborne.selenide.SelenideElement;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.Keys;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.time.Duration;
 
 import static com.codeborne.selenide.Condition.*;
@@ -12,6 +15,12 @@ import static com.codeborne.selenide.Selenide.*;
 
 
 class CardDeliveryTest {
+
+    public String generateDate(int days) {
+        return LocalDate.now().plusDays(days).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+    }
+    String planningDate = generateDate(6);
+    String planningDefaultDate = generateDate(3);
 
     @Test
     void shouldPassWhenAllDataIsCorrectTest() {
@@ -24,6 +33,9 @@ class CardDeliveryTest {
         form.$(".button").click();
         $("[data-test-id=notification]").shouldBe(visible, Duration.ofSeconds(12));
         $(".notification__title").shouldHave(exactText("Успешно!"));
+        $(".notification__content")
+                .shouldHave(Condition.text("Встреча успешно забронирована на " + planningDefaultDate), Duration.ofSeconds(15))
+                .shouldBe(Condition.visible);
     }
 
     @Test
@@ -37,6 +49,9 @@ class CardDeliveryTest {
         form.$(".button").click();
         $("[data-test-id=notification]").shouldBe(visible, Duration.ofSeconds(12));
         $(".notification__title").shouldHave(exactText("Успешно!"));
+        $(".notification__content")
+                .shouldHave(Condition.text("Встреча успешно забронирована на " + planningDefaultDate), Duration.ofSeconds(12))
+                .shouldBe(Condition.visible);
     }
 
     @Test
@@ -50,6 +65,9 @@ class CardDeliveryTest {
         form.$(".button").click();
         $("[data-test-id=notification]").shouldBe(visible, Duration.ofSeconds(12));
         $(".notification__title").shouldHave(exactText("Успешно!"));
+        $(".notification__content")
+                .shouldHave(Condition.text("Встреча успешно забронирована на " + planningDefaultDate), Duration.ofSeconds(15))
+                .shouldBe(Condition.visible);
     }
 
     // тесты на 1 поле Город
@@ -65,6 +83,9 @@ class CardDeliveryTest {
         form.$(".button").click();
         $("[data-test-id=notification]").shouldBe(visible, Duration.ofSeconds(12));
         $(".notification__title").shouldHave(exactText("Успешно!"));
+        $(".notification__content")
+                .shouldHave(Condition.text("Встреча успешно забронирована на " + planningDefaultDate), Duration.ofSeconds(15))
+                .shouldBe(Condition.visible);
     }
 
     @Test
@@ -93,13 +114,48 @@ class CardDeliveryTest {
 
     // тесты на 2 поле Дата встречи
 
+    DateTimeFormatter myDateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    LocalDateTime dateToday = LocalDateTime.now();
+
+    @Test
+    void shouldPassWhenDatePlusThreeDaysTest() {
+        open("http://localhost:9999");
+        SelenideElement form = $("form");
+        form.$("[data-test-id=city] .input__control").setValue("Благовещенск");
+        form.$("[data-test-id=date] .input__control").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
+        form.$("[data-test-id=date] .input__control").setValue(generateDate(6));
+        form.$("[data-test-id=name] .input__control").setValue("Кошечкин");
+        form.$("[data-test-id=phone] .input__control").setValue("+79234567890");
+        form.$(".checkbox").click();
+        form.$(".button").click();
+        $("[data-test-id=notification]").shouldBe(visible, Duration.ofSeconds(12));
+        $(".notification__title").shouldHave(exactText("Успешно!"));
+        $(".notification__content")
+                .shouldHave(Condition.text("Встреча успешно забронирована на " + planningDate), Duration.ofSeconds(15))
+                .shouldBe(Condition.visible);
+    }
+
     @Test
     void shouldNotPassWhenDateFromThePastTest() {
         open("http://localhost:9999");
         SelenideElement form = $("form");
         form.$("[data-test-id=city] .input__control").setValue("Москва");
-        form.$("[data-test-id=date] .input__control").sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE);
-        form.$("[data-test-id=date] .input__control").setValue("22.05.2020");
+        form.$("[data-test-id=date] .input__control").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
+        form.$("[data-test-id=date] .input__control").setValue(generateDate(-50));
+        form.$("[data-test-id=name] .input__control").setValue("Кошечкин молодец");
+        form.$("[data-test-id=phone] .input__control").setValue("+79234567890");
+        form.$(".checkbox").click();
+        form.$(".button").click();
+        $("[data-test-id=date] .input__sub").shouldHave(exactText("Заказ на выбранную дату невозможен"));
+    }
+
+    @Test
+    void shouldNotPassWhenDateIsTodayTest() {
+        open("http://localhost:9999");
+        SelenideElement form = $("form");
+        form.$("[data-test-id=city] .input__control").setValue("Москва");
+        form.$("[data-test-id=date] .input__control").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
+        form.$("[data-test-id=date] .input__control").setValue(generateDate(0));
         form.$("[data-test-id=name] .input__control").setValue("Кошечкин молодец");
         form.$("[data-test-id=phone] .input__control").setValue("+79234567890");
         form.$(".checkbox").click();
@@ -261,7 +317,7 @@ class CardDeliveryTest {
         form.$("[data-test-id=name] .input__control").setValue("Кошечкин Фрэнк");
         form.$("[data-test-id=phone] .input__control").setValue("+79234567890");
         form.$(".button").click();
-        $(".checkbox").shouldNotHave(Condition.attribute("checkbox_checked"));
+        $("[data-test-id='agreement'].input_invalid").shouldBe(visible);
     }
 
 }
